@@ -4,6 +4,7 @@
 Requires Python 3.
 """
 
+import itertools
 import json
 import os
 import pylab
@@ -111,8 +112,8 @@ class reddit_stats(object):
         """Return todal number of posts per unique domain name."""
         date_total = len(self._date_data)
 
-        domain_list = [x for y in self._data.values() for x in y]
-        domain_all_list = [x for y in self._all_data.values() for x in y]
+        domain_list = itertools.chain(*self._data.values())
+        domain_all_list = itertools.chain(*self._all_data.values())
         domain_set = set(domain_list)
         domain_all_set = set(domain_all_list)
 

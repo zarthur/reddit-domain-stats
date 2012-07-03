@@ -12,17 +12,14 @@ import urllib.request
 
 from datetime import datetime
 
-HOME_PATH = home = os.getenv('USERPROFILE') or os.getenv('HOME')
+HOME_PATH = os.getenv('USERPROFILE') or os.getenv('HOME')
 DATA_PATH = os.path.join(HOME_PATH, '.reddit')
 DATA_FILE = 'data'
 ALL_DATA_FILE = 'data_all'
 DATE_FILE = 'dates'
 
-try:
+if not os.path.exists(DATA_PATH):
     os.makedirs(DATA_PATH)
-except OSError:
-    #if directory already exists, do nothing
-    pass
 
 def _gen_data_dict(dictionary, key, value):
     """Update dictionary by appending value if key in dictionary and
@@ -148,7 +145,7 @@ class reddit_stats(object):
         self.load_data()
         data, all_data, date_data = self._get_reddit_data()
 
-        self._date_data = self._date_data.append(date_date) \
+        self._date_data = self._date_data.append(date_data) \
             if isinstance(self._date_data, list) else [date_data]
 
         for key, value in data.items():
@@ -168,6 +165,10 @@ class reddit_stats(object):
         pylab.savefig(os.path.join(DATA_PATH, filename))
 
 
-if __name__ == "__main__":
-    reddit = reddit_averages()
+def main():
+    reddit = reddit_stats()
     reddit.update()
+
+
+if __name__ == "__main__":
+    main()

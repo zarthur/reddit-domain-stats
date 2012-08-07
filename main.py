@@ -12,7 +12,7 @@ import urllib.request
 
 from datetime import datetime
 
-HOME_PATH = os.getenv('USERPROFILE') or os.getenv('HOME')
+HOME_PATH = home = os.getenv('USERPROFILE') or os.getenv('HOME')
 DATA_PATH = os.path.join(HOME_PATH, '.reddit')
 DATA_FILE = 'data'
 ALL_DATA_FILE = 'data_all'
@@ -78,13 +78,13 @@ class reddit_stats(object):
         return data, all_data, date_data
 
     @staticmethod
-    def _load_data_file(filename):
+    def _load_data_file(filename, is_list=False):
         """Load saved data from file."""
         try:
             with open(filename) as infile:
                 data = json.load(infile)
         except IOError:
-            data = {}
+            data = {} if not is_list else []
         return data
 
     @staticmethod

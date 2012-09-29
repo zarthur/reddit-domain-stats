@@ -1,6 +1,3 @@
-NOT YET WORKING
-===============
-
 reddit-domain-stats
 ===================
 

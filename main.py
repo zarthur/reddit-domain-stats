@@ -13,7 +13,7 @@ import urllib.request
 from datetime import datetime
 
 HOME_PATH = home = os.getenv('USERPROFILE') or os.getenv('HOME')
-DATA_PATH = os.path.join(HOME_PATH, '.reddit')
+DATA_PATH = os.path.join(HOME_PATH, '.reddit-stats')
 DATA_FILE = 'data'
 ALL_DATA_FILE = 'data_all'
 DATE_FILE = 'dates'
@@ -109,10 +109,12 @@ class reddit_stats(object):
         """Return todal number of posts per unique domain name."""
         date_total = len(self._date_data)
 
-        domain_list = itertools.chain(*self._data.values())
-        domain_all_list = itertools.chain(*self._all_data.values())
-        domain_set = set(domain_list)
-        domain_all_set = set(domain_all_list)
+        domain_list = [x[0] for x in itertools.chain(*self._data.values())]
+        domain_all_list = [x[0] for x in
+                           itertools.chain(*self._all_data.values())]
+
+        domain_set = set(list(domain_list))
+        domain_all_set = set(list(domain_all_list))
 
         domain_data = dict((entry, domain_list.count(entry)) \
                         for entry in domain_set)
@@ -145,8 +147,10 @@ class reddit_stats(object):
         self.load_data()
         data, all_data, date_data = self._get_reddit_data()
 
-        self._date_data = self._date_data.append(date_data) \
-            if isinstance(self._date_data, list) else [date_data]
+        if isinstance(self._date_data, list):
+            self._date_data.append(date_data)
+        else:
+            self._date_data = [date_data]
 
         for key, value in data.items():
             self._data = _gen_data_dict(self._data, key, value)
@@ -169,6 +173,20 @@ def main():
     reddit = reddit_stats()
     reddit.update()
 
+    user_data, user_all_data, user_date_data = reddit.get_user_totals()
+    domain_data, domain_all_data, domain_date_data = reddit.get_domain_totals()
+
+    file_dict =  {
+        'user_data.png':user_data,
+        'user_all_data.png': user_all_data,
+        'user_date_data.png': user_date_data,
+        'domain_data.png': domain_data,
+        'domain_all_data.png': domain_all_data,
+        'domain_date_data': domain_date_data
+    }
+
+    for filename, data_dict in file_dict.items():
+        reddit.generate_graph(data_dict, filename)
 
 if __name__ == "__main__":
     main()

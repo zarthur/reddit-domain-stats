@@ -8,6 +8,8 @@ import itertools
 import json
 import os
 import pylab
+import sys
+import urllib
 import urllib.request
 
 from datetime import datetime
@@ -160,33 +162,40 @@ class reddit_stats(object):
 
         self.save_data()
 
-    def generate_graph(self, data_dict, filename):
+    def generate_graph(self, data_dict, filename, samples):
         """Generate and save a plot from a data dictionary."""
-        x, y = zip(*data_dict)
-        pylab.figure()
-        pylab.bar(range(len(y)), y)
-        pylab.xticks(range(len(x)), x)
-        pylab.savefig(os.path.join(DATA_PATH, filename))
+        tuples = [(k, v) for k, v in data_dict.items()]
+        tuples.sort()
+        x, y = zip(*tuples)
+        f = pylab.figure()
+        ax = f.add_subplot(211)
+        ax.bar(range(len(y)), y)
+        tick_loc = [entry + 0.5 for entry in range(len(x))]
+        ax.xaxis.set_ticks(tick_loc)
+        ax.xaxis.set_ticklabels(x, rotation=90)
+        ax.set_title('Samples: ' + str(samples))
+        f.savefig(os.path.join(DATA_PATH, filename))
 
 
 def main():
     reddit = reddit_stats()
-    reddit.update()
+    try:
+        reddit.update()
+    except urllib.error.HTTPError:
+        print('unable to update', file=sys.stderr)
 
-    user_data, user_all_data, user_date_data = reddit.get_user_totals()
-    domain_data, domain_all_data, domain_date_data = reddit.get_domain_totals()
+    user_data, user_all_data, samples = reddit.get_user_totals()
+    domain_data, domain_all_data, _ = reddit.get_domain_totals()
 
     file_dict =  {
         'user_data.png':user_data,
         'user_all_data.png': user_all_data,
-        'user_date_data.png': user_date_data,
         'domain_data.png': domain_data,
         'domain_all_data.png': domain_all_data,
-        'domain_date_data': domain_date_data
     }
 
     for filename, data_dict in file_dict.items():
-        reddit.generate_graph(data_dict, filename)
+        reddit.generate_graph(data_dict, filename, samples)
 
 if __name__ == "__main__":
     main()

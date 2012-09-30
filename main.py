@@ -165,7 +165,16 @@ class reddit_stats(object):
     def generate_graph(self, data_dict, filename, samples):
         """Generate and save a plot from a data dictionary."""
         tuples = [(k, v) for k, v in data_dict.items()]
-        tuples.sort()
+        tuples.sort(key=lambda x: x[1], reverse=True)
+
+        if len(tuples) > 25:
+            tuples = tuples[:25]
+            title = 'Top 25, Samples =' + str(samples)
+        else:
+            title = 'Samples =' + str(samples)
+
+        tuples.sort(key=lambda x: x[0])
+
         x, y = zip(*tuples)
         f = pylab.figure()
         ax = f.add_subplot(211)
@@ -173,16 +182,25 @@ class reddit_stats(object):
         tick_loc = [entry + 0.5 for entry in range(len(x))]
         ax.xaxis.set_ticks(tick_loc)
         ax.xaxis.set_ticklabels(x, rotation=90)
-        ax.set_title('Samples: ' + str(samples))
+        ax.set_title(title)
         f.savefig(os.path.join(DATA_PATH, filename))
 
 
 def main():
     reddit = reddit_stats()
-    try:
-        reddit.update()
-    except urllib.error.HTTPError:
-        print('unable to update', file=sys.stderr)
+    success = False
+    attempts = 0
+    while not success and attempts < 10:
+        try:
+            reddit.update()
+        except urllib.error.HTTPError:
+            attempts += 1
+            continue
+        success = True
+
+    if attempts == 10 and not success:
+        print('Unable to establish connection', file=sys.stderr)
+        sys.exit()
 
     user_data, user_all_data, samples = reddit.get_user_totals()
     domain_data, domain_all_data, _ = reddit.get_domain_totals()

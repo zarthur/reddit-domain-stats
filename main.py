@@ -19,6 +19,7 @@ DATA_PATH = os.path.join(HOME_PATH, '.reddit-stats')
 DATA_FILE = 'data'
 ALL_DATA_FILE = 'data_all'
 DATE_FILE = 'dates'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36'
 
 if not os.path.exists(DATA_PATH):
     os.makedirs(DATA_PATH)
@@ -39,7 +40,8 @@ def _get_response(req_url, json_resp=True):
     """Get response from a sepecified URL; process JSON if response
     is JSON, else return data from URL request.
     """
-    request = urllib.request.Request(req_url)
+    headers = {'User-Agent': USER_AGENT}
+    request = urllib.request.Request(req_url, headers=headers)
     req_data = urllib.request.urlopen(request)
     data = json.loads(req_data.read().decode()) \
             if json_resp else req_data
